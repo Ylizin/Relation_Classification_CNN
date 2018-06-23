@@ -85,7 +85,7 @@ def main():
       # target: N shape tensor, with the index of the class of the target
 
       #print("r : {0}".format(r.size()))
-      pred = model(seq, dist1, dist2, e1, e2)
+      pred = model(seq, dist1, dist2)
       #print("pred:{0}".format(pred.size()))
       l = loss_func(pred, r)
       acc = accuracy(pred, r)
@@ -113,7 +113,7 @@ def main():
         r = Tensor(r)
         r = r.view(r.size(0))
 
-        pred = model(seq, dist1, dist2, e1, e2)
+        pred = model(seq, dist1, dist2)
         acc = accuracy(pred, r)
         val_total_acc += acc
       best_eval_acc = max(best_eval_acc, val_total_acc/nval_batch)

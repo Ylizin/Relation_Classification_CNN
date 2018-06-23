@@ -56,8 +56,8 @@ class SemEvalDataset(Dataset):
     new_seqs = np.zeros((len(seqs), self.max_len))
     dist1s = np.zeros((len(seqs), self.max_len))
     dist2s = np.zeros((len(seqs), self.max_len))
-    e1s = np.zeros((len(seqs), 1))
-    e2s = np.zeros((len(seqs), 1))
+    e1s = np.zeros((len(seqs), 300))
+    e2s = np.zeros((len(seqs), 300))
     for r, (seq, e1_p, e2_p) in enumerate(zip(seqs, e1_pos, e2_pos)):
       seq = list(map(word2Vec, seq)) #convert each element of seq into a tensor/vector
       dist1 = list(map(map_pos, [idx - e1_p[1] for idx, _ in enumerate(seq)])) 
@@ -65,22 +65,26 @@ class SemEvalDataset(Dataset):
       e1s[r] = seq[e1_p[1]]
       e2s[r] = seq[e2_p[1]]
       
+      for i in range(min(len(seq),self.max_len)):
+        new_seqs[r,i] = concatSeq(i,seq,0,min(len(seq),self.max_len))
+        dist1s[r,i] = dist1[i]
+        dist2s[r,i] = dist2[i]
       #do piece wise here, we divide a sentence into three part and treat them as different sentences but they are neighbors
-      if(e1_p != 0 ):#if(e1_p == 0) the first part is none 
-        for i in range(0,e1_p):
-          new_seqs[3*r, i] = concatSeq(i,seq,0,e1_p) #new_seqs is a 3D matrix of sentenceNum,sentenceLength,wordVecDim (= 3)
-          dist1s[3*r, i] = dist1[i]
-          dist2s[3*r, i] = dist2[i]
-      if(e1_p != e2_p):#if(e1_p==e2_p) the second part is none
-          for i in range(e1_p,e2_p):
-            new_seqs[3*r+1, i] = concatSeq(i,seq,e1_p,e2_p) 
-            dist1s[3*r+1, i] = dist1[i]
-            dist2s[3*r+1, i] = dist2[i]
-      if(e2_p <= min(len(seq),self.max_len)):
-          for i in range(e2_p,min(len(seq),self.max_len)):
-            new_seqs[3*r+2, i] = concatSeq(i,seq,e2_p,min(len(seq),self.max_len))
-            dist1s[3*r+2, i] = dist1[i]
-            dist2s[3*r+2, i] = dist2[i]
+      #if(e1_p != 0 ):#if(e1_p == 0) the first part is none 
+      #  for i in range(0,e1_p):
+      #    new_seqs[3*r, i] = concatSeq(i,seq,0,e1_p) #new_seqs is a 3D matrix of sentenceNum,sentenceLength,wordVecDim (= 3)
+      #    dist1s[3*r, i] = dist1[i]
+      #    dist2s[3*r, i] = dist2[i]
+      #if(e1_p != e2_p):#if(e1_p==e2_p) the second part is none
+      #    for i in range(e1_p,e2_p):
+      #      new_seqs[3*r+1, i] = concatSeq(i,seq,e1_p,e2_p) 
+      #      dist1s[3*r+1, i] = dist1[i]
+      #      dist2s[3*r+1, i] = dist2[i]
+      #if(e2_p <= min(len(seq),self.max_len)):
+      #    for i in range(e2_p,min(len(seq),self.max_len)):
+      #      new_seqs[3*r+2, i] = concatSeq(i,seq,e2_p,min(len(seq),self.max_len))
+      #      dist1s[3*r+2, i] = dist1[i]
+      #      dist2s[3*r+2, i] = dist2[i]
     return new_seqs, e1s, e2s, dist1s, dist2s #new seqs = 3*seqs
 
   def __len__(self):
@@ -108,7 +112,8 @@ def load_data(filename):
   with open(filename, 'r') as f:
     for line in f:
       data = line.strip().split('\t')
-      data[0] = data[0].lower().split(' ')
+      while " " in data[0]:
+        data[0] = data[0].lower().split(' ')
       seqs.append(data[0])
       e1_pos.append((int(data[1]), int(data[2])))
       e2_pos.append((int(data[3]), int(data[4])))

@@ -36,7 +36,7 @@ class CNN(nn.Module):
     self.fc = nn.Linear(self.dc * len(args.kernel_sizes), self.vac_len_rel)#the num of relations
   
   
-  def forward(self, W, W_pos1, W_pos2, e1, e2):#every layer is operated on each data in the batch
+  def forward(self, W, W_pos1, W_pos2):#every layer is operated on each data in the batch
    
     #e1 = self.word_embedding(e1)
     #e2 = self.word_embedding(e2)
