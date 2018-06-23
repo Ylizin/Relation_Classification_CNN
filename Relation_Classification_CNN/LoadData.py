@@ -16,7 +16,11 @@ def loadGoogleVector(Path):
     print('Google load complete.\n')
 
 def word2Vec(Word):
-    return model[Word]
+    try:
+        return model[Word]
+    except KeyError:
+        return np.zeros(300)
+
 
 def concatSeq(i,seq,maxLength,minLength):
     seq_i = None
