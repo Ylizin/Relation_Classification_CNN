@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Relation_Classification_CNN", "Relation_Classification_CNN\Relation_Classification_CNN.pyproj", "{F457E47A-2FBA-4C8E-B117-8B80971EC545}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F457E47A-2FBA-4C8E-B117-8B80971EC545}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F457E47A-2FBA-4C8E-B117-8B80971EC545}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CCE0C185-4E8B-4359-879B-B6B8EB73F64E}
+	EndGlobalSection
+EndGlobal
