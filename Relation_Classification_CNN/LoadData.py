@@ -98,7 +98,7 @@ class SemEvalDataset(Dataset):
     return len(self.seqs)
   
   def __getitem__(self, index):
-    seq = torch.from_numpy(self.seqs[index]).long()#for each iteration , return a seq of a sentence,
+    seq = torch.from_numpy(self.seqs[index]).float()#for each iteration , return a seq of a sentence,
                                                 #and batch will do 128(--bz) iteration to get
                                                 #128 sentences through 'index'
     e1 = torch.from_numpy(self.e1s[index]).long()

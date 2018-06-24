@@ -22,6 +22,7 @@ class CNN(nn.Module):
     #self.word_embedding = nn.Embedding(self.vac_len_word, self.dw) #word embedding input by seq(batch of sentence),and output turn each element into a vector of dw
     
     #self.word_embedding.weight.data.copy_(torch.from_numpy(args.word_embedding))
+    #embedding layer obtain input with longTensor as index
     self.pos_embedding_pos1 = nn.Embedding(self.vac_len_pos, self.dp)
     self.pos_embedding_pos2 = nn.Embedding(self.vac_len_pos, self.dp)
 

@@ -62,7 +62,7 @@ def main():
   model = CNN(args)
   loss_func = nn.CrossEntropyLoss()
   # optimizer = optim.SGD(model.parameters(), lr=0.2)
-  optimizer = optim.Adam(model.parameters(), lr=0.01)
+  optimizer = optim.Adam(model.parameters(), lr = args.lr)
   best_eval_acc = 0.
 
   for i in range(args.nepoch):
@@ -84,6 +84,9 @@ def main():
       # input : a tensor with N*C shape(N->batchsize,C ->  the probability of the possible classes)
       # target: N shape tensor, with the index of the class of the target
       seq = seq.type(torch.float)
+      seq.requires_grad_(True)
+      if i ==0 :
+        optimizer.add_param_group({'params':seq,'lr':1e-1})#TUNE google pretrained vec
       dist1 = dist1.type(torch.float)
       dist2 = dist2.type(torch.float)
       #print("r : {0}".format(r.size()))
