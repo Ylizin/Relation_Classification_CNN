@@ -12,7 +12,7 @@ class CNN(nn.Module):
     self.dp = args.dp # Position embedding dimension
     self.vac_len_pos = args.vac_len_pos
     self.dw = 300
-    self.vac_len_word = args.vac_len_word
+    #self.vac_len_word = args.vac_len_word
     self.vac_len_rel = args.vac_len_rel
     self.dc = args.dc
     self.seq_len = args.seq_len

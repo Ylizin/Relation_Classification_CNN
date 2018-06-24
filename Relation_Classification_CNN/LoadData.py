@@ -22,20 +22,20 @@ def word2Vec(Word):
         return np.zeros(300)
 
 
-def concatSeq(i,seq,maxLength,minLength):
+def concatSeq(i,seq,minLength,maxLength):
     seq_i = None
-    if(i == minLength):
-        seq_i = np.zeros(1,300)
-        seq_i = np.column_stack(seq_i,seq[i])
-        seq_i = np.column_stack(seq_i,seq[i+1])
-    elif(i < maxLength and i> minLength):
-        seq_i = seq[i]
-        seq_i = np.column_stack(seq_i,seq[i+1])
-        seq_i = np.column_stack(seq_i,seq[i+2])
-    elif(i == maxLength) : 
+    if i == minLength :
+        seq_i = np.zeros(300)
+        seq_i = np.append(seq_i,seq[i])
+        seq_i = np.append(seq_i,seq[i+1])
+    elif i < maxLength-1 and i> minLength:
         seq_i = seq[i-1]
-        seq_i = seq[i]
-        seq_i = np.column_stack(seq_i,np.zeros(1,300))
+        seq_i = np.append(seq_i,seq[i])
+        seq_i = np.append(seq_i,seq[i+1])
+    elif i == maxLength-1 : 
+        seq_i = seq[i-1]
+        seq_i = np.append(seq_i,seq[i])
+        seq_i = np.append(seq_i,np.zeros(300))
     else:
         raise IndexError("concatSeq index incorrect!")
     return seq_i
@@ -48,8 +48,11 @@ class SemEvalDataset(Dataset):
     self.max_len = max_len
     #if d is None:
     #  self.d = build_dict(seqs)
-    self.rel_d = build_dict([[r] for r in rs], add_extra=False)
-    #else:
+    if d is None :
+        self.rel_d = build_dict([[r] for r in rs], add_extra=False)
+    else :
+        self.rel_d = d
+        #else:
     #  self.d = d[0]
     #  self.rel_d = d[1]
     self.seqs, self.e1s, self.e2s, self.dist1s, self.dist2s =\
@@ -57,7 +60,7 @@ class SemEvalDataset(Dataset):
     self.rs = np.array([[self.rel_d.word2id[r]] for r in rs]) #the relation dict can turn relations into a index,for the following operations
   
   def vectorize_seq(self, seqs, e1_pos, e2_pos):
-    new_seqs = np.zeros((len(seqs), self.max_len))
+    new_seqs = np.zeros((len(seqs), self.max_len,3*300))
     dist1s = np.zeros((len(seqs), self.max_len))
     dist2s = np.zeros((len(seqs), self.max_len))
     e1s = np.zeros((len(seqs), 300))

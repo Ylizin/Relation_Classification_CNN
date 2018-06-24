@@ -49,12 +49,12 @@ def main():
   dataset = SemEvalDataset(args.train_filename, max_len=args.seq_len)
   dataloader = DataLoader(dataset, args.bz, True, num_workers=args.num_workers) #128 sentence per batch
 
-  dataset_val = SemEvalDataset(args.test_filename, max_len=args.seq_len, d=(dataset.d, dataset.rel_d))
+  dataset_val = SemEvalDataset(args.test_filename, max_len=args.seq_len, d=dataset.rel_d)
   dataloader_val = DataLoader(dataset_val, args.bz, True, num_workers=args.num_workers)
   #args.word_embedding = load_embedding(args.embedding_filename, args.embedding_wordlist_filename,\
   #  dataset.d)
   args.vac_len_pos = 122
-  args.vac_len_word = len(dataset.d.word2id)
+  #args.vac_len_word = len(dataset.d.word2id)
   args.vac_len_rel = len(dataset.rel_d.word2id)
   args.dw = 50
   
@@ -73,17 +73,19 @@ def main():
     model.train()
     for (seq, e1, e2, dist1, dist2, r) in dataloader:
       ntrain_batch += 1
-      seq = Tensor(seq)
-      e1 = Tensor(e1)
-      e2 = Tensor(e2)
-      dist1 = Tensor(dist1)
-      dist2 = Tensor(dist2)
-      r = Tensor(r)
+      #seq = Tensor(seq)
+      #e1 = Tensor(e1)
+      #e2 = Tensor(e2)
+      #dist1 = Tensor(dist1)
+      #dist2 = Tensor(dist2)
+      #r = Tensor(r)
       r = r.view(r.size(0))
       #r.size(0) means the batch size, and the input of this lossFunction is 
       # input : a tensor with N*C shape(N->batchsize,C ->  the probability of the possible classes)
       # target: N shape tensor, with the index of the class of the target
-
+      seq = seq.type(torch.float)
+      dist1 = dist1.type(torch.float)
+      dist2 = dist2.type(torch.float)
       #print("r : {0}".format(r.size()))
       pred = model(seq, dist1, dist2)
       #print("pred:{0}".format(pred.size()))
@@ -105,13 +107,16 @@ def main():
       model.eval()
       for (seq, e1, e2, dist1, dist2, r) in dataloader_val:
         nval_batch += 1
-        seq = Tensor(seq)
-        e1 = Tensor(e1)
-        e2 = Tensor(e2)
-        dist1 = Tensor(dist1)
-        dist2 = Tensor(dist2)
-        r = Tensor(r)
+        #seq = Tensor(seq)
+        #e1 = Tensor(e1)
+        #e2 = Tensor(e2)
+        #dist1 = Tensor(dist1)
+        #dist2 = Tensor(dist2)
+        #r = Tensor(r)
         r = r.view(r.size(0))
+        seq = seq.type(torch.float)
+        dist1 = dist1.type(torch.float)
+        dist2 = dist2.type(torch.float)
 
         pred = model(seq, dist1, dist2)
         acc = accuracy(pred, r)
