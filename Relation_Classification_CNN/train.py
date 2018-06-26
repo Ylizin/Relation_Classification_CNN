@@ -6,6 +6,7 @@ import torch
 from torch import Tensor
 import torch.nn.functional as F
 from torch import nn, optim
+from torch.optim.lr_scheduler import *
 from torch.utils.data import DataLoader
 import argparse
 from CNN import CNN
@@ -22,15 +23,15 @@ def accuracy(preds, labels):
 
 def main():
   parser = argparse.ArgumentParser("CNN")
-  parser.add_argument("--dp", type=int, default=5)
+  parser.add_argument("--dp", type=int, default=30)#word dimension should be scaled as the dw scaled
   parser.add_argument("--dc", type=int, default=32)
   parser.add_argument("--lr", type=float, default=0.001)
   parser.add_argument("--seq_len", type=int, default=120)
   parser.add_argument("--vac_len_rel", type=int, default=19) #the number of relation kind 
   parser.add_argument("--nepoch", type=int ,default=100)
-  parser.add_argument("--num_workers", type=int, default=4)
+  parser.add_argument("--num_workers", type=int, default=0)#multiprocessing may cause unreasonable errors
   parser.add_argument("--eval_every", type=int, default=10)
-  parser.add_argument("--dropout_rate", type=float, default=0.4)
+  parser.add_argument("--dropout_rate", type=float, default=0.6)
   parser.add_argument("--bz", type=int, default=192)
   parser.add_argument("--kernel_sizes", type=str, default="3,4,5")
   parser.add_argument('--gpu', type=int, default=0)
@@ -63,9 +64,11 @@ def main():
   loss_func = nn.CrossEntropyLoss()
   # optimizer = optim.SGD(model.parameters(), lr=0.2)
   optimizer = optim.Adam(model.parameters(), lr = args.lr)
+  scheduler = StepLR(optimizer,step_size = 30)
   best_eval_acc = 0.
 
   for i in range(args.nepoch):
+    scheduler.step()
     # Training
     total_loss = 0.
     total_acc = 0.
@@ -86,7 +89,7 @@ def main():
       seq = seq.type(torch.float)
       seq.requires_grad_(True)
       if i ==0 :
-        optimizer.add_param_group({'params':seq,'lr':1e-1})#TUNE google pretrained vec
+        optimizer.add_param_group({'params':seq,'lr':0.1})#TUNE google pretrained vec
       dist1 = dist1.type(torch.float)
       dist2 = dist2.type(torch.float)
       #print("r : {0}".format(r.size()))

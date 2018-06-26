@@ -101,7 +101,7 @@ class SemEvalDataset(Dataset):
     seq = torch.from_numpy(self.seqs[index]).float()#for each iteration , return a seq of a sentence,
                                                 #and batch will do 128(--bz) iteration to get
                                                 #128 sentences through 'index'
-    e1 = torch.from_numpy(self.e1s[index]).long()
+    e1 = torch.from_numpy(self.e1s[index]).long() #the embedding layers require longTensor as index
     e2 = torch.from_numpy(self.e2s[index]).long()
     dist1 = torch.from_numpy(self.dist1s[index]).long()
     dist2 = torch.from_numpy(self.dist2s[index]).long()
