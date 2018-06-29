@@ -9,23 +9,25 @@ from gensim.models import KeyedVectors
 
 model = None
 
-def loadGoogleVector(Path):
+dw = 300
+
+def loadWordVector(Path):
     global model
-    print('Google Vec loading:\n')
+    print('Word Vec loading:\n')
     model = KeyedVectors.load_word2vec_format(Path,binary = True)
-    print('Google load complete.\n')
+    print('Word load complete.\n')
 
 def word2Vec(Word):
     try:
         return model[Word]
     except KeyError:
-        return np.zeros(300)
+        return np.zeros(dw)
 
 
 def concatSeq(i,seq,minLength,maxLength):
     seq_i = None
     if i == minLength :
-        seq_i = np.zeros(300)
+        seq_i = np.zeros(dw)
         seq_i = np.append(seq_i,seq[i])
         seq_i = np.append(seq_i,seq[i+1])
     elif i < maxLength-1 and i> minLength:
@@ -35,7 +37,7 @@ def concatSeq(i,seq,minLength,maxLength):
     elif i == maxLength-1 : 
         seq_i = seq[i-1]
         seq_i = np.append(seq_i,seq[i])
-        seq_i = np.append(seq_i,np.zeros(300))
+        seq_i = np.append(seq_i,np.zeros(dw))
     else:
         raise IndexError("concatSeq index incorrect!")
     return seq_i
@@ -43,7 +45,7 @@ def concatSeq(i,seq,minLength,maxLength):
 
 class SemEvalDataset(Dataset):
   def __init__(self, filename, max_len, d=None):#d for dictionary 
-    loadGoogleVector("./data/Google.bin.gz")
+    loadWordVector("./data/vec.bin")
     seqs, e1_pos, e2_pos, rs = load_data(filename)
     self.max_len = max_len
     #if d is None:
@@ -60,11 +62,11 @@ class SemEvalDataset(Dataset):
     self.rs = np.array([[self.rel_d.word2id[r]] for r in rs]) #the relation dict can turn relations into a index,for the following operations
   
   def vectorize_seq(self, seqs, e1_pos, e2_pos):
-    new_seqs = np.zeros((len(seqs), self.max_len,3*300))
+    new_seqs = np.zeros((len(seqs), self.max_len,3*dw))
     dist1s = np.zeros((len(seqs), self.max_len))
     dist2s = np.zeros((len(seqs), self.max_len))
-    e1s = np.zeros((len(seqs), 300))
-    e2s = np.zeros((len(seqs), 300))
+    e1s = np.zeros((len(seqs), dw))
+    e2s = np.zeros((len(seqs), dw))
     for r, (seq, e1_p, e2_p) in enumerate(zip(seqs, e1_pos, e2_pos)):
       seq = list(map(word2Vec, seq)) #convert each element of seq into a tensor/vector
       dist1 = list(map(map_pos, [idx - e1_p[1] for idx, _ in enumerate(seq)])) 
@@ -101,8 +103,8 @@ class SemEvalDataset(Dataset):
     seq = torch.from_numpy(self.seqs[index]).float()#for each iteration , return a seq of a sentence,
                                                 #and batch will do 128(--bz) iteration to get
                                                 #128 sentences through 'index'
-    e1 = torch.from_numpy(self.e1s[index]).long() #the embedding layers require longTensor as index
-    e2 = torch.from_numpy(self.e2s[index]).long()
+    e1 = torch.from_numpy(self.e1s[index]).float() #the embedding layers require longTensor as index
+    e2 = torch.from_numpy(self.e2s[index]).float()
     dist1 = torch.from_numpy(self.dist1s[index]).long()
     dist2 = torch.from_numpy(self.dist2s[index]).long()
     r = torch.from_numpy(self.rs[index]).long()

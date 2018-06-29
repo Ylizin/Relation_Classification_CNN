@@ -11,7 +11,7 @@ class CNN(nn.Module):
     super(CNN, self).__init__()
     self.dp = args.dp # Position embedding dimension
     self.vac_len_pos = args.vac_len_pos
-    self.dw = 300
+    self.dw = args.dw
     #self.vac_len_word = args.vac_len_word
     self.vac_len_rel = args.vac_len_rel
     self.dc = args.dc
@@ -34,10 +34,10 @@ class CNN(nn.Module):
         nn.MaxPool1d(self.seq_len)
     ) for kernel_size in args.kernel_sizes])#for each kernel size build a conv-tanh-pool operation
 
-    self.fc = nn.Linear(self.dc * len(args.kernel_sizes), self.vac_len_rel)#the num of relations
+    self.fc = nn.Linear(self.dc * len(args.kernel_sizes)+2*self.dw, self.vac_len_rel)#the num of relations
   
   
-  def forward(self, W, W_pos1, W_pos2):#every layer is operated on each data in the batch
+  def forward(self, W, W_pos1, W_pos2,e1,e2):#every layer is operated on each data in the batch
    
     #e1 = self.word_embedding(e1)
     #e2 = self.word_embedding(e2)
@@ -46,7 +46,8 @@ class CNN(nn.Module):
     W_pos2 = self.pos_embedding_pos2(W_pos2)
     #if we wanna select 3 word as the feature then we can turn seq into 3dimension 
     #like 128*120*3 and cat the positionFeature at dim=2
-
+    W_pos1 = W_pos1.type(torch.float)
+    W_pos2 = W_pos2.type(torch.float)
     Wa = torch.cat([W, W_pos1, W_pos2], dim=2)
 
     #before the permute
@@ -59,9 +60,9 @@ class CNN(nn.Module):
 
     conv = self.dropout(conv)
 
-    #e_concat = torch.cat([e1, e2], dim=1)
+    e_concat = torch.cat([e1, e2], dim=1)
 
-    all_concat = conv.view(conv.size(0), -1) #view conv res as N(batchsize),*(any dimension)
+    all_concat = torch.cat([e_concat.view(e_concat.size(0),-1),conv.view(conv.size(0), -1)],dim=1) #view conv res as N(batchsize),*(any dimension)
 
     out = self.fc(all_concat)
     #print("out before softmax:{0}".format(out.size()))
