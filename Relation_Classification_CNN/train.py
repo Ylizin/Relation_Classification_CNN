@@ -66,9 +66,9 @@ def getPR():
     rel_FP[9] = rel_FP[10] + rel_FP[13]
 
     for i,(tp,fp,fn) in enumerate(zip(rel_TP,rel_FP,rel_FN)):
+        f1 = 0 
         if i ==0 or i>9 :#ignore 'other' relation 
           continue
-          f1 = 0 
         if tp!= 0:
           p = tp/(tp+fp)
           r = tp/(tp+fn)
@@ -94,7 +94,7 @@ def accuracy(preds, labels):
 def main():
   parser = argparse.ArgumentParser("CNN")
   parser.add_argument("--dp", type=int, default=30)#word dimension should be scaled as the dw scaled
-  parser.add_argument("--dc", type=int, default=32)
+  parser.add_argument("--dc", type=int, default=192)
   parser.add_argument("--lr", type=float, default=0.001)
   parser.add_argument("--seq_len", type=int, default=120)
   parser.add_argument("--vac_len_rel", type=int, default=19) #the number of relation kind 
@@ -134,7 +134,7 @@ def main():
     model = model.cuda()
   loss_func = nn.CrossEntropyLoss()
   # optimizer = optim.SGD(model.parameters(), lr=0.2)
-  optimizer = optim.Adam(model.parameters(), lr = args.lr)
+  optimizer = optim.Adam(model.parameters(), lr = args.lr,weight_decay= 1e-5)
   scheduler = StepLR(optimizer,step_size = 100,gamma = 0.3)
   best_eval_acc = 0.
 
@@ -146,7 +146,7 @@ def main():
     total_acc = 0.
     ntrain_batch = 0
     model.train()
-    for (seq, e1, e2, dist1, dist2, r) in dataloader:
+    for (seq, e1, e2, dist1, dist2, r,e1_p,e2_p) in dataloader:
       ntrain_batch += 1
       if(torch.cuda.is_available()):
         seq = seq.cuda()
@@ -164,7 +164,7 @@ def main():
       #if i ==0 :
         #optimizer.add_param_group({'params':seq,'lr':0.1})#TUNE google pretrained vec
       #print("r : {0}".format(r.size()))
-      pred = model(seq, dist1, dist2,e1,e2)
+      pred = model(seq, dist1, dist2,e1,e2,e1_p,e2_p)
       #print("pred:{0}".format(pred.size()))
       l = loss_func(pred, r)
       acc = accuracy(pred, r)
@@ -183,7 +183,7 @@ def main():
       val_total_acc = 0.
       nval_batch = 0
       model.eval()
-      for (seq, e1, e2, dist1, dist2, r) in dataloader_val:
+      for (seq, e1, e2, dist1, dist2, r,e1_p,e2_p) in dataloader_val:
         nval_batch += 1
         if(torch.cuda.is_available()):
             seq = seq.cuda()
@@ -195,7 +195,7 @@ def main():
 
         r = r.view(r.size(0))
 
-        pred = model(seq, dist1, dist2,e1,e2)
+        pred = model(seq, dist1, dist2,e1,e2,e1_p,e2_p)
         acc = accuracy(pred, r)
         val_total_acc += acc
       best_eval_acc = max(best_eval_acc, val_total_acc/nval_batch)

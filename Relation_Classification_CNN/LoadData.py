@@ -4,6 +4,8 @@ import torch
 from collections import Counter
 from torch.utils.data import Dataset
 
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 import gensim
 from gensim.models import KeyedVectors
 
@@ -45,8 +47,8 @@ def concatSeq(i,seq,minLength,maxLength):
 
 class SemEvalDataset(Dataset):
   def __init__(self, filename, max_len, d=None):#d for dictionary 
-    loadWordVector("./data/vec.bin")
-    seqs, e1_pos, e2_pos, rs = load_data(filename)
+    loadWordVector("./data/google.bin.gz")
+    seqs, self.e1_pos, self.e2_pos, rs = load_data(filename)
     self.max_len = max_len
     #if d is None:
     #  self.d = build_dict(seqs)
@@ -58,7 +60,7 @@ class SemEvalDataset(Dataset):
     #  self.d = d[0]
     #  self.rel_d = d[1]
     self.seqs, self.e1s, self.e2s, self.dist1s, self.dist2s =\
-      self.vectorize_seq(seqs, e1_pos, e2_pos)
+      self.vectorize_seq(seqs, self.e1_pos, self.e2_pos)
     self.rs = np.array([[self.rel_d.word2id[r]] for r in rs]) #the relation dict can turn relations into a index,for the following operations
   
   def vectorize_seq(self, seqs, e1_pos, e2_pos):
@@ -108,7 +110,9 @@ class SemEvalDataset(Dataset):
     dist1 = torch.from_numpy(self.dist1s[index]).long()
     dist2 = torch.from_numpy(self.dist2s[index]).long()
     r = torch.from_numpy(self.rs[index]).long()
-    return seq, e1, e2, dist1, dist2, r
+    e1_ps = self.e1_pos[index][1]
+    e2_ps = self.e2_pos[index][1]
+    return seq, e1, e2, dist1, dist2, r,e1_ps,e2_ps
 
 '''
     load the data processed by the preprocess
