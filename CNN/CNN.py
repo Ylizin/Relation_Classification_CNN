@@ -31,14 +31,16 @@ class CNN(nn.Module):
     self.convs = nn.ModuleList([nn.Sequential(#dc would be considered as the number of the conv_kernels of each size
         nn.Conv1d(3*self.dw + 2 * self.dp, self.dc, kernel_size=kernel_size,padding=int((kernel_size - 0) / 2)),
         nn.Tanh(),
-        #nn.MaxPool1d(self.seq_len)
+        nn.MaxPool1d(self.seq_len)
     ) for kernel_size in args.kernel_sizes])#for each kernel size build a conv-tanh-pool operation
-    self.maxpool = nn.AdaptiveAvgPool1d(1)
-    self.fc = nn.Linear(3*self.dc * len(args.kernel_sizes)+2*self.dw, self.vac_len_rel)#the num of relations
+
+    self.fc = nn.sequential( 
+        [nn.Linear(self.dc * len(args.kernel_sizes)+2*self.dw, self.vac_len_rel)]                   
+                            )#the num of relations
   
   
-  def forward(self, W, W_pos1, W_pos2,e1,e2,e1_p,e2_p):#every layer is operated on each data in the batch
- 
+  def forward(self, W, W_pos1, W_pos2,e1,e2):#every layer is operated on each data in the batch
+   
     #e1 = self.word_embedding(e1)
     #e2 = self.word_embedding(e2)
     #W = self.word_embedding(W)
@@ -56,47 +58,8 @@ class CNN(nn.Module):
     #d2 :vec of the word after permute, it was delivered into conv imply the inChannel param  
     each_conv = [conv(Wa.permute(0, 2, 1)) for conv in self.convs]
 
-    pooledConvs = []
-    for conv in each_conv:
-        conv.requires_grad_(True)
-        new_conv = torch.zeros(conv.size(0),conv.size(1),3)
-        for i,(dis1,dis2) in enumerate(zip(e1_p,e2_p)):
-            convi = conv[i] #seq i in conv
-            minDis = min(dis1,dis2)
-            maxDis = max(dis1,dis2)
-            dis1 = minDis
-            dis2 = maxDis
-            #print(dis1)
-            #print(dis2)
-            part1=part2=part3 = None
-            if dis1 == 0 : 
-              part1 = torch.unsqueeze(torch.zeros(convi.size(0),1),dim = 0)
-            else:
-              part1 = torch.unsqueeze(convi[:,0:dis1],dim = 0)
-            if dis1 == dis2: 
-              part2 = torch.unsqueeze(torch.zeros(convi.size(0),1),dim = 0)
-            else:
-              part2 = torch.unsqueeze(convi[:,dis1:dis2],dim = 0)
-            if dis2 > self.seq_len-1 : 
-              part2 = torch.unsqueeze(torch.zeros(convi.size(0),1),dim = 0)
-            else:
-              part3 = torch.unsqueeze(convi[:,dis2:],dim=0)
+    conv = torch.cat(each_conv, dim=1)#cat the output of convs
 
-            #print(convi.size())
-            sentenConv=torch.cat([
-                self.maxpool(part1).cpu(),
-                self.maxpool(part2).cpu(),
-                self.maxpool(part3).cpu()
-                ],
-                dim = 2 # cat at word
-                )
-            new_conv[i] = torch.squeeze(sentenConv,dim = 0)
-        new_conv.requires_grad_(True)
-        pooledConvs.append(new_conv)
-
-    conv = torch.cat(pooledConvs, dim=1)#cat the output of convs
-    if(torch.cuda.is_available()):
-      conv = conv.cuda()
     conv = self.dropout(conv)
 
     e_concat = torch.cat([e1, e2], dim=1)

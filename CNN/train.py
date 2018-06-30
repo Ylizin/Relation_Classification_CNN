@@ -66,9 +66,9 @@ def getPR():
     rel_FP[9] = rel_FP[10] + rel_FP[13]
 
     for i,(tp,fp,fn) in enumerate(zip(rel_TP,rel_FP,rel_FN)):
-        f1 = 0 
         if i ==0 or i>9 :#ignore 'other' relation 
           continue
+          f1 = 0 
         if tp!= 0:
           p = tp/(tp+fp)
           r = tp/(tp+fn)
@@ -114,7 +114,7 @@ def main():
   args = parser.parse_args()
   args.kernel_sizes = list(map(int, args.kernel_sizes.split(',')))
   # Initilization
-  #torch.cuda.set_device(args.gpu)
+  torch.cuda.set_device(args.gpu)
 
   # Load data
   dataset = SemEvalDataset(args.train_filename, max_len=args.seq_len)
@@ -134,8 +134,8 @@ def main():
     model = model.cuda()
   loss_func = nn.CrossEntropyLoss()
   # optimizer = optim.SGD(model.parameters(), lr=0.2)
-  optimizer = optim.Adam(model.parameters(), lr = args.lr,weight_decay= 1e-5)
-  scheduler = StepLR(optimizer,step_size = 100,gamma = 0.3)
+  optimizer = optim.Adam(model.parameters(), lr = args.lr)
+  scheduler = StepLR(optimizer,step_size = 100,gamma = 0.3,weight_decay = 1e-5)
   best_eval_acc = 0.
 
   for i in range(args.nepoch):
@@ -146,7 +146,7 @@ def main():
     total_acc = 0.
     ntrain_batch = 0
     model.train()
-    for (seq, e1, e2, dist1, dist2, r,e1_p,e2_p) in dataloader:
+    for (seq, e1, e2, dist1, dist2, r) in dataloader:
       ntrain_batch += 1
       if(torch.cuda.is_available()):
         seq = seq.cuda()
@@ -164,7 +164,7 @@ def main():
       #if i ==0 :
         #optimizer.add_param_group({'params':seq,'lr':0.1})#TUNE google pretrained vec
       #print("r : {0}".format(r.size()))
-      pred = model(seq, dist1, dist2,e1,e2,e1_p,e2_p)
+      pred = model(seq, dist1, dist2,e1,e2)
       #print("pred:{0}".format(pred.size()))
       l = loss_func(pred, r)
       acc = accuracy(pred, r)
@@ -183,7 +183,7 @@ def main():
       val_total_acc = 0.
       nval_batch = 0
       model.eval()
-      for (seq, e1, e2, dist1, dist2, r,e1_p,e2_p) in dataloader_val:
+      for (seq, e1, e2, dist1, dist2, r) in dataloader_val:
         nval_batch += 1
         if(torch.cuda.is_available()):
             seq = seq.cuda()
@@ -195,7 +195,7 @@ def main():
 
         r = r.view(r.size(0))
 
-        pred = model(seq, dist1, dist2,e1,e2,e1_p,e2_p)
+        pred = model(seq, dist1, dist2,e1,e2)
         acc = accuracy(pred, r)
         val_total_acc += acc
       best_eval_acc = max(best_eval_acc, val_total_acc/nval_batch)

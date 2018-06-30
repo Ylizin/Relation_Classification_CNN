@@ -1,2 +1,3 @@
-./.vs
+./Relation_Classification_CNN/data
+./Relation_Classification_CNN/__pycache__
 .vs
