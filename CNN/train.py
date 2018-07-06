@@ -66,9 +66,9 @@ def getPR():
     rel_FP[9] = rel_FP[10] + rel_FP[13]
 
     for i,(tp,fp,fn) in enumerate(zip(rel_TP,rel_FP,rel_FN)):
+        f1 = 0 
         if i ==0 or i>9 :#ignore 'other' relation 
           continue
-          f1 = 0 
         if tp!= 0:
           p = tp/(tp+fp)
           r = tp/(tp+fn)
