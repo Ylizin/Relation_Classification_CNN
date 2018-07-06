@@ -134,8 +134,8 @@ def main():
     model = model.cuda()
   loss_func = nn.CrossEntropyLoss()
   # optimizer = optim.SGD(model.parameters(), lr=0.2)
-  optimizer = optim.Adam(model.parameters(), lr = args.lr)
-  scheduler = StepLR(optimizer,step_size = 100,gamma = 0.3,weight_decay = 1e-5)
+  optimizer = optim.Adam(model.parameters(), lr = args.lr,weight_decay = 1e-5)
+  scheduler = StepLR(optimizer,step_size = 100,gamma = 0.3)
   best_eval_acc = 0.
 
   for i in range(args.nepoch):
