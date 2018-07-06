@@ -45,7 +45,7 @@ def concatSeq(i,seq,minLength,maxLength):
 
 class SemEvalDataset(Dataset):
   def __init__(self, filename, max_len, d=None):#d for dictionary 
-    loadWordVector("./data/vec.bin")
+    loadWordVector("./data/google.bin.gz")
     seqs, e1_pos, e2_pos, rs = load_data(filename)
     self.max_len = max_len
     #if d is None:
