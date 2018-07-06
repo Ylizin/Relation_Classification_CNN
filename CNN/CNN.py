@@ -35,7 +35,7 @@ class CNN(nn.Module):
     ) for kernel_size in args.kernel_sizes])#for each kernel size build a conv-tanh-pool operation
 
     self.fc = nn.sequential( 
-        [nn.Linear(self.dc * len(args.kernel_sizes)+2*self.dw, self.vac_len_rel)]                   
+        nn.Linear(self.dc * len(args.kernel_sizes)+2*self.dw, self.vac_len_rel)，                  
                             )#the num of relations
   
   
